@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: my-application
+data:
+  DOMAIN: localhost
+  FRONTEND_HOST: http://dashboard.localhost
+  ENVIRONMENT: local
+  BACKEND_CORS_ORIGINS: "http://localhost,http://localhost:5173,https://localhost,https://localhost:5173,http://localhost.sangcv.com"
+  SMTP_HOST: mailcatcher
+  SMTP_PORT: "587"
+  EMAILS_FROM_EMAIL: info@example.com
+  POSTGRES_SERVER: db
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: vocabulary_quiz
+  SENTRY_DSN: ""
+  SMTP_TLS: "True"
+  SMTP_SSL: "False"
