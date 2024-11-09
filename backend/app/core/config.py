@@ -53,7 +53,7 @@ class Settings(BaseSettings):
     POSTGRES_SERVER: str
     REDIS_URL: str = "redis://127.0.0.1:6379"
     REDIS_DB: int = 1
-    REDIS_SOCKET_TIMEOUT: int = 5
+    REDIS_SOCKET_TIMEOUT: int = 10
     POSTGRES_PORT: int = 5432
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str = ""

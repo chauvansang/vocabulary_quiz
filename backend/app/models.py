@@ -76,6 +76,7 @@ class QuizSession(SQLModel, table=True):
 
 
 class Leaderboard(SQLModel):
+    rank: int
     user_id: uuid.UUID
     score: int
 

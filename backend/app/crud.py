@@ -2,7 +2,7 @@ import uuid
 from typing import Any, Type, Sequence
 
 from sqlalchemy.orm import lazyload
-from sqlmodel import Session, select
+from sqlmodel import Session, select, func
 
 from app.core.security import get_password_hash, verify_password
 from app.models import User, UserCreate, UserUpdate, Quiz, QuizSession, Leaderboard, Question, Answer, UserPublic
@@ -158,12 +158,22 @@ def update_quiz_score(*, session: Session, session_id: uuid.UUID, score: int) ->
 
 def get_leaderboard(*, session: Session, quiz_id: uuid.UUID) -> list[Leaderboard]:
     statement = (
-        select(QuizSession.user_id, QuizSession.score)
+        select(
+            QuizSession.user_id,
+            QuizSession.score,
+            func.rank().over(order_by=QuizSession.score.desc()).label("rank")
+        )
         .where(QuizSession.quiz_id == quiz_id)
         .order_by(QuizSession.score.desc())
     )
     results = session.exec(statement).all()
-    return [Leaderboard(user_id=result[0], score=result[1]) for result in results]
+
+    leaderboard = [
+        Leaderboard(rank=result[2], user_id=result[0], score=result[1])
+        for result in results
+    ]
+
+    return leaderboard
 
 
 def join_quiz_session(*, session: Session, quiz_id: uuid.UUID, user_id: uuid.UUID) -> QuizSession:

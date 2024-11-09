@@ -273,7 +273,7 @@ export class QuizzesService {
   ): CancelablePromise<Leaderboard[]> {
     return __request(OpenAPI, {
       method: "GET",
-      url: `/api/v1/quiz-sessions/leaderboard/${quizId}`,
+      url: `/api/v1/leaderboards/${quizId}`,
       errors: {
         422: `Validation Error`,
       },
@@ -308,7 +308,7 @@ export class QuizzesService {
         const { quizId, score } = data
         return __request(OpenAPI, {
           method: "POST",
-          url: `/api/v1/quiz-sessions/leaderboard/${quizId}/score`,
+          url: `/api/v1/leaderboards/${quizId}/score`,
           body: { score },
           mediaType: "application/json",
           errors: {

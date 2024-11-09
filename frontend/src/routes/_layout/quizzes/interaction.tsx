@@ -4,7 +4,6 @@ import {createFileRoute, useSearch} from "@tanstack/react-router"
 import {useQueryClient} from "@tanstack/react-query"
 import {Button, Container, Heading, Radio, RadioGroup, Stack, Text,} from "@chakra-ui/react"
 import {Question, QuizzesService} from "../../../client"
-import Leaderboard from "../../../components/Leaderboard/Leaderboard"
 
 const QuizInteraction = () => {
   const { quizId, sessionId } = useSearch({ from: Route.id })
@@ -53,7 +52,6 @@ const QuizInteraction = () => {
         <Heading>Quiz Completed</Heading>
         <Text>Your score: {score}</Text>
         <Button onClick={handleFinish}>Finish</Button>
-        <Leaderboard quizId={quizId} />
       </Container>
     )
   }

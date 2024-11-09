@@ -63,6 +63,7 @@ export type QuizSession = {
 }
 
 export type Leaderboard = {
+  rank: number
   user_id: string
   score: number
 }

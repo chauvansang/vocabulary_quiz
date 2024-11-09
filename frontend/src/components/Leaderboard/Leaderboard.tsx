@@ -1,3 +1,4 @@
+import { useLeaderboard } from '../../contexts/LeaderboardContext';
 import {
   Table,
   Thead,
@@ -7,70 +8,55 @@ import {
   Td,
   TableContainer,
   Text,
-} from '@chakra-ui/react'
-import {useEffect, useState} from "react";
-
-type LeaderboardEntry = {
-  rank: number
-  user_id: string
-  score: number
-}
+  Alert,
+  AlertIcon,
+} from '@chakra-ui/react';
+import React, { useEffect, useState } from 'react';
+import { QuizzesService } from '../../client';  // Ensure this import is correct
 
 type LeaderboardProps = {
-  quizId: string
-  pollingInterval?: number
-}
+  quizId: string;
+};
 
-const Leaderboard = ({ quizId}: LeaderboardProps) => {
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const [isConnecting, setIsConnecting] = useState(true)
+const Leaderboard = ({ quizId }: LeaderboardProps) => {
+  const { leaderboards, error } = useLeaderboard();
+  const [cachedData, setCachedData] = useState(leaderboards[quizId] || []); // Initialize state based on context
+  const [loading, setLoading] = useState(true); // New loading state
 
+  // Update cached data when the leaderboard data changes in context
   useEffect(() => {
-    console.log(`Connecting to SSE for quiz ${quizId}`);
-    setIsConnecting(true);
+    setCachedData(leaderboards[quizId] || []);
+  }, [leaderboards, quizId]);
 
-    const eventSource = new EventSource(
-      `${import.meta.env.VITE_API_URL}/api/v1/quiz-sessions/leaderboard/${quizId}/stream`
-    );
-
-    eventSource.onopen = () => {
-      console.log('SSE connection opened');
-      setIsConnecting(false);
-      setError(null);
-    };
-
-    eventSource.onmessage = (event) => {
+  // Fetch initial leaderboard data from the API on mount
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
       try {
-        const data = JSON.parse(event.data);
-        console.log('Received data:', data);
-        setLeaderboard(data);
-        setError(null);
-      } catch (err) {
-        console.error('Error parsing data:', err);
-        setError('Failed to parse leaderboard data');
+        const response = await QuizzesService.getLeaderboard(quizId);
+        setCachedData(response); // Initial data from API
+        setLoading(false); // Stop loading
+      } catch (error) {
+        console.error('Error fetching leaderboard:', error);
+        setLoading(false); // Stop loading even if error occurs
       }
     };
 
-    eventSource.onerror = (err) => {
-      console.error('SSE error:', err);
-      setError('Connection failed');
-      setIsConnecting(false);
-      eventSource.close();
-    };
+    fetchLeaderboard();
+  }, [quizId]); // Only fetch when quizId changes
 
-    return () => {
-      console.log('Closing SSE connection');
-      eventSource.close();
-    };
-  }, [quizId]);
-
-  if (isConnecting) {
-    return <Text>Connecting to leaderboard...</Text>;
+  // Handle loading state
+  if (loading) {
+    return <Alert status="info">Loading leaderboard...</Alert>; // Display loading state
   }
 
+  // Handle error state
   if (error) {
-    return <Text color="red.500">Error: {error}</Text>;
+    return (
+      <Alert status="error">
+        <AlertIcon />
+        {error}
+      </Alert>
+    );
   }
 
   return (
@@ -84,17 +70,25 @@ const Leaderboard = ({ quizId}: LeaderboardProps) => {
           </Tr>
         </Thead>
         <Tbody>
-          {leaderboard.map((entry) => (
-            <Tr key={entry.user_id}>
-              <Td>{entry.rank}</Td>
-              <Td>{entry.user_id}</Td>
-              <Td isNumeric>{entry.score}</Td>
+          {cachedData.length === 0 ? (
+            <Tr>
+              <Td colSpan={3}>
+                <Text textAlign="center">No entries yet</Text>
+              </Td>
             </Tr>
-          ))}
+          ) : (
+            cachedData.map((entry) => (
+              <Tr key={entry.user_id}>
+                <Td>{entry.rank}</Td>
+                <Td>{entry.user_id}</Td>
+                <Td isNumeric>{entry.score}</Td>
+              </Tr>
+            ))
+          )}
         </Tbody>
       </Table>
     </TableContainer>
-  )
-}
+  );
+};
 
-export default Leaderboard
+export default Leaderboard;
